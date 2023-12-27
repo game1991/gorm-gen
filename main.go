@@ -10,6 +10,7 @@ import (
 	"gen/db"
 	"gen/sql"
 
+	_ "git.xq5.com/base/proto/gen/go/office/server/bpm/v1"
 	"github.com/gotomicro/ego/core/elog"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/spf13/cobra"
@@ -28,7 +29,7 @@ var dataMap = map[string]func(gorm.ColumnType) (dataType string){
 		if strings.HasPrefix(ct, "tinyint(1)") {
 			return "bool"
 		}
-		return "int"
+		return "int32"
 	},
 }
 
@@ -72,6 +73,7 @@ to quickly create a Cobra application.`,
 		//FieldCoverable:    true, // generate pointer when field has default value
 		FieldWithIndexTag: true, // generate with gorm index tag
 		FieldWithTypeTag:  true, // generate with gorm column type tag
+		Mode:              gen.WithDefaultQuery | gen.WithQueryInterface,
 	}
 
 	genConfig.OutPath = "./dal/query"
@@ -130,9 +132,12 @@ to quickly create a Cobra application.`,
 	tableNames := os.Getenv(MODEL_TABLE_NAME)
 	tableNameList := strings.Split(tableNames, ";")
 	for _, name := range tableNameList {
-		genmodel := g.GenerateModel(name)
+		gmodel := g.GenerateModel(name,
+			gen.FieldType("deleted_at", "soft_delete.DeletedAt"),
+			gen.FieldType("scope_type", "v1.ScopeType"),
+		)
 		g.ApplyBasic(
-			genmodel,
+			gmodel,
 		)
 	}
 	g.Execute()

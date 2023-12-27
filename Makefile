@@ -1,6 +1,7 @@
 .PHONY: build db sql
 
 build:
+	@rm -rf gen
 	@go build -o gen
 
 sql: build
